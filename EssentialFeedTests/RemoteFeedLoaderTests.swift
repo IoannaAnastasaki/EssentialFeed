@@ -111,5 +111,23 @@ because we are mixing responsibilities - responsibility of invoking a method in 
  Using constructor dependency injection to RemoteFeedUrl, i did not need shaed instance and when i deleted
  sharedInstance from HttpClient class, it was looking like an abstract class, as it had only the get method that the spy class already ovverided. So we make HttpClient to protocol and the spy class just conforms to it.
  
+ 
+ Recap:
+ We don't need to start by conforming to the <FeedLoader> protocol. We can take smaller and safer
+ steps by test-driving implementation
+ 
+ HTTPClient has no reason to ba a Singleton or shared instance, apart from the convenience to locate the instance
+ directly
+ 
+ The RemoteFeedLoader does not need to locate or instantiate the HTTPClient instance. Instead, we can make our code more modular by injecting the HTTPClient as a dependency(by injecting dependencies - low coupling between
+ modules)
+ 
+ HTTPClient does not need to be a class. It is just a contract defining which external functionality the RemoteFeedLoader needs, so a protocol is a more suitable way to define it
+ HTTPClient is just a contract which defines which external functionality RemoteFeedLoader needs and
+ a protocol is more convinient to define a contract.
+ By creating a clean separation with protocols, we made the RemoteFeedLoader more flexible, open fot
+ extension(Alamofire,URLSession) fo and more testable and not depend to concrete types(URLSession)
+ 
+ Refactor Singleton with dependency injection.
  */
 
