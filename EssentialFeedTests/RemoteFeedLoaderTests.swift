@@ -8,20 +8,25 @@
 import XCTest
 
 class RemoteFeedLoader {
+    
+    let client: HTTPClient
+    
+    init(client: HTTPClient) {
+        self.client = client
+    }
+    
     func load() {
-        HTTPClient.shared.get(from: URL(string: "http://a-url.com")!)
+     client.get(from: URL(string: "http://a-url.com")!)
     }
 }
 
-class HTTPClient {
-    static var shared = HTTPClient()
-        
-    func get(from url: URL) {}
+protocol HTTPClient {
+    func get(from url: URL)
 }
 
 class HTTPClientSpy: HTTPClient {
     
-    override func get(from url: URL) {
+    func get(from url: URL) {
         requestedURL = url
     }
     
@@ -32,18 +37,14 @@ class RemoteFeedLoaderTests: XCTestCase {
     
     func test_init_doesNotRequestDataFromURL() {
         let client = HTTPClientSpy()
-        HTTPClient.shared = client
+        _ = RemoteFeedLoader(client: client)
         
-        let sut = RemoteFeedLoader()
-
         XCTAssertNil(client.requestedURL)
     }
     
     func test_load_requestDataFromURL() {
         let client = HTTPClientSpy()
-        HTTPClient.shared = client
-
-        let sut = RemoteFeedLoader()
+        let sut = RemoteFeedLoader(client: client)
         
         sut.load()
         
@@ -88,5 +89,14 @@ But instructors suggest not dependency injection but a more concrete way to comm
  4. Swap HttpClient shared instance with the spy subclass during tests
  5. Remove HttpClient private initializer(constructor) since its not a Singleton anymore
  //We do not have a Singleton anymore and the test logic is now in the test type - spy class
+ 
+ 10:22
+ Not good approach to use share instance directly at
+ HTTPClient.shared.get(from: URL(string: "http://a-url.com")!)
+because we are mixing responsibilities - responsibility of invoking a method in an object
+ and responsibility of locating this object. I f we inject our client we have more control in our code, we do not want to know ehich Http instance i am using.
+ Using constructor dependency injection to RemoteFeedUrl, i did not need shaed instance and when i deleted
+ sharedInstance from HttpClient class, it was looking like an abstract class, as it had only the get method that the spy class already ovverided. So we make HttpClient to protocol and the spy class just conforms to it.
+ 
  */
 
