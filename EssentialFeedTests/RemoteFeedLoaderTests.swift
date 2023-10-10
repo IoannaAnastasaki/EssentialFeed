@@ -18,23 +18,26 @@ class HTTPClient {
 class RemoteFeedLoaderTests: XCTestCase {
     
     func test_init_doesNotRequestDataFromURL() {
-        // o client mporei na einai URLSession, Alamofire klp
-        let client = HTTPClient()
-        _ = RemoteFeedLoader()
-        //to prwto mas test gia na kanoume execute th load feeds command apo to api
-        //sut.load()
-        
-        XCTAssertNil(client.requestedURL)
-        
-    }
-    
-    func test_load_requestDataFromURL() {
         let client = HTTPClient()
         let sut = RemoteFeedLoader()
         
-        sut.load()
-        
+        //first test: We did not make url request since that should only happen when .load() is invoked
         XCTAssertNil(client.requestedURL)
     }
     
 }
+
+
+
+/***
+ Some theory for this lecture
+ 
+ sut: system under test-small piece of code to test
+ The tests in this file are specifically for RemoteFeedLoader, so the sut is RemoteFeedLoader
+ 
+ Collaborator: Like Alamofire, URLSession, HttpClient
+ 
+ XCTAssert: asserts that an expression is true
+ 
+ */
+
