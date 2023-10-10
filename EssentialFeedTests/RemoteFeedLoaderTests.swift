@@ -19,7 +19,7 @@ class HTTPClient {
     func get(from url: URL) {}
 }
 
-class HttpClientSpy: HTTPClient {
+class HTTPClientSpy: HTTPClient {
     
     override func get(from url: URL) {
         requestedURL = url
@@ -31,7 +31,7 @@ class HttpClientSpy: HTTPClient {
 class RemoteFeedLoaderTests: XCTestCase {
     
     func test_init_doesNotRequestDataFromURL() {
-        let client = HttpClientSpy()
+        let client = HTTPClientSpy()
         HTTPClient.shared = client
         
         let sut = RemoteFeedLoader()
@@ -40,7 +40,7 @@ class RemoteFeedLoaderTests: XCTestCase {
     }
     
     func test_load_requestDataFromURL() {
-        let client = HttpClientSpy()
+        let client = HTTPClientSpy()
         HTTPClient.shared = client
 
         let sut = RemoteFeedLoader()
