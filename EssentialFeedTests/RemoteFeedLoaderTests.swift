@@ -9,27 +9,40 @@ import XCTest
 
 class RemoteFeedLoader {
     func load() {
-        HTTPClient.shared.requestedURL = URL(string: "http://a-url.com")
+        HTTPClient.shared.get(from: URL(string: "http://a-url.com")!)
     }
 }
 
 class HTTPClient {
-    static let shared = HTTPClient()
-    private init() {}
+    static var shared = HTTPClient()
+        
+    func get(from url: URL) {}
+}
+
+class HttpClientSpy: HTTPClient {
+    
+    override func get(from url: URL) {
+        requestedURL = url
+    }
+    
     var requestedURL: URL?
 }
 
 class RemoteFeedLoaderTests: XCTestCase {
     
     func test_init_doesNotRequestDataFromURL() {
-        let client = HTTPClient.shared
+        let client = HttpClientSpy()
+        HTTPClient.shared = client
+        
         let sut = RemoteFeedLoader()
 
         XCTAssertNil(client.requestedURL)
     }
     
     func test_load_requestDataFromURL() {
-        let client = HTTPClient.shared
+        let client = HttpClientSpy()
+        HTTPClient.shared = client
+
         let sut = RemoteFeedLoader()
         
         sut.load()
@@ -65,7 +78,15 @@ class RemoteFeedLoaderTests: XCTestCase {
 But instructors suggest not dependency injection but a more concrete way to communicate RemoteFeedLoader and HttpClient, Singleton Impementation.
  
  The test are passed, but why to have Singleton HttpClient and not have as many HttpClients as i want?
- 
- 
+ The goal is to refactor and get rid of the Singleton:
+ How?
+ 1.make shared a var(it will be not singleton anymore).
+ 2.Move test logic from the RemoteFeedUrl to HttpClient(the false url line)
+ 3. Move the test logic ta a new subclass of the HttpClient(making shared property var
+ instead of let, open the possibility to make subclass of HttpClient. We do not want the requestedUrl
+ to HttpClient class as it exists only for testing purposes)
+ 4. Swap HttpClient shared instance with the spy subclass during tests
+ 5. Remove HttpClient private initializer(constructor) since its not a Singleton anymore
+ //We do not have a Singleton anymore and the test logic is now in the test type - spy class
  */
 
