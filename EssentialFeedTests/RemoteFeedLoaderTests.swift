@@ -6,26 +6,7 @@
 //
 
 import XCTest
-
-class RemoteFeedLoader {
-    
-    let client: HTTPClient
-    let url: URL
-    
-    init(url: URL, client: HTTPClient) {
-        self.url = url
-        self.client = client
-    }
-    
-    func load() {
-        client.get(from: url)
-    }
-}
-
-protocol HTTPClient {
-    func get(from url: URL)
-}
-
+import EssentialFeed
 
 class RemoteFeedLoaderTests: XCTestCase {
     
@@ -129,5 +110,22 @@ because we are mixing responsibilities - responsibility of invoking a method in 
  extension(Alamofire,URLSession) fo and more testable and not depend to concrete types(URLSession)
  
  Refactor Singleton with dependency injection.
+ 
+ 
+ 
+ ===============Asserting a Captured Value Is Not Enough + Cross-Module Access Control===============
+ 
+ Move RemoteFeedLoader class and HTTP protocol from this test file to production code.
+ But then how the testcode will have access to the class and protocol, Two ways:
+ Import the EssentialFeed library and we have to decide if:
+ 
+ 1.
+ Use @testable, which makes the internal types visible to the test target(@testable import EssentialFeed)
+ -Benefit: we 're free to change internal and private implementation details without breaking tests.
+ 
+ 2. Import  EssentialFeed library  without annotation and make HTTPprotocol, RemoteFeedLoader class and its constructor+func public(properties can be private). We can make RemoteFeedLoader Final in order to not be
+ subclassed
+ 
+ 
  */
 
