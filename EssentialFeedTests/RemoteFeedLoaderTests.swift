@@ -21,8 +21,9 @@ class RemoteFeedLoaderTests: XCTestCase {
         let (sut, client) = makeSUT(url: url)
         
         sut.load()
+        sut.load()
         
-        XCTAssertEqual(client.requestedURL, url)
+        XCTAssertEqual(client.requestedURLs, [url, url])
     }
     
     //MARK: - Helpers
@@ -37,9 +38,11 @@ class RemoteFeedLoaderTests: XCTestCase {
     //class for testing
     private class HTTPClientSpy: HTTPClient {        
         var requestedURL: URL?
+        var requestedURLs = [URL]()
 
         func get(from url: URL) {
             requestedURL = url
+            requestedURLs.append(url)
         }
     }
     
@@ -124,8 +127,12 @@ because we are mixing responsibilities - responsibility of invoking a method in 
  -Benefit: we 're free to change internal and private implementation details without breaking tests.
  
  2. Import  EssentialFeed library  without annotation and make HTTPprotocol, RemoteFeedLoader class and its constructor+func public(properties can be private). We can make RemoteFeedLoader Final in order to not be
- subclassed
+ subclassed(we chose that approach)
+ 
+ When testing objects collaborating, asserting the values passed is not enough. We also need to ask "how many times was the method invoked?"( XCTAssertEqual(client.requestedURL, url)). If for example
+ the load method has double times the client.get(from: url)  in RemoteFeedVC...it is unexpected behaviour and the test will pass. It is important because i do not want to have multiple api calls.
  
  
+ order/equality and count for two arrays to be equal
  */
 
