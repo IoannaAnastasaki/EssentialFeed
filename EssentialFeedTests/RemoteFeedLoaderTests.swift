@@ -29,10 +29,10 @@ class RemoteFeedLoaderTests: XCTestCase {
         let (sut, client) = makeSUT()
         client.error = NSError(domain: "Test", code: 0)
         
-        var capturedError = [RemoteFeedLoader.Error]()
-        sut.load { capturedError.append($0) } //{ error in capturedError = error } same way to write it like  { capturedError = $0 }
+        var capturedErrors = [RemoteFeedLoader.Error]()
+        sut.load { capturedErrors.append($0) } //{ error in capturedError = error } same way to write it like  { capturedError = $0 }
         
-        XCTAssertEqual(capturedError, [.connectivity])
+        XCTAssertEqual(capturedErrors, [.connectivity])
     }
     
     //MARK: - Helpers
@@ -154,6 +154,9 @@ because we are mixing responsibilities - responsibility of invoking a method in 
  public func load(completion: (Error) -> Void = { _ in}) {
      client.get(from: url)
  }// void has the ={_ in}, a default closure in order not to brake the other tests
-
+ and this way can have two implementations at once:
+ func test_load_requestsDataFromURL() {    sut.load() }
+ func test_load_deliversErrorOnClientError() { sut.load { capturedError.append($0) }
+ 
  */
 
