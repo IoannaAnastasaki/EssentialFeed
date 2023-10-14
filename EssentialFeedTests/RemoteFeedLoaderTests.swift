@@ -27,10 +27,12 @@ class RemoteFeedLoaderTests: XCTestCase {
     
     func test_load_deliversErrorOnClientError() {
         let (sut, client) = makeSUT()
-        client.error = NSError(domain: "Test", code: 0)
-        
+                
         var capturedErrors = [RemoteFeedLoader.Error]()
         sut.load { capturedErrors.append($0) } //{ error in capturedError = error } same way to write it like  { capturedError = $0 }
+        
+        let clientError = NSError(domain: "Test", code: 0)
+        client.completions[0](clientError)
         
         XCTAssertEqual(capturedErrors, [.connectivity])
     }
@@ -47,12 +49,10 @@ class RemoteFeedLoaderTests: XCTestCase {
     //class for testing
     private class HTTPClientSpy: HTTPClient {        
         var requestedURLs = [URL]()
-        var error: Error?
+        var completions = [(Error) -> Void]()
 
         func get(from url: URL, completion: @escaping(Error) -> Void) {
-            if let error = error {
-                completion(error)
-            }
+            completions.append(completion)
             requestedURLs.append(url)
         }
     }
@@ -158,5 +158,22 @@ because we are mixing responsibilities - responsibility of invoking a method in 
  func test_load_requestsDataFromURL() {    sut.load() }
  func test_load_deliversErrorOnClientError() { sut.load { capturedError.append($0) }
  
+ - First attemp:
+ 
+ func test_load_deliversErrorOnClientError() {
+     let (sut, client) = makeSUT()
+     client.error = NSError(domain: "Test", code: 0)
+     
+     var capturedErrors = [RemoteFeedLoader.Error]()
+     sut.load { capturedErrors.append($0) } //{ error in capturedError = error } same way to write it like  { capturedError = $0 }
+     
+     XCTAssertEqual(capturedErrors, [.connectivity])
+ }
+ 
+ Test the connectivity error completion by stubbing error(set a particular error value)
+ on HTTPClientSpy. We call load and then we assert (captured error instead of Test must be the
+ connectivity error)
+ 
+But this way we do not test the real asynchronous HTTPClient implementation
  */
 
