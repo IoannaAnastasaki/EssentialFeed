@@ -25,6 +25,7 @@ class RemoteFeedLoaderTests: XCTestCase {
         XCTAssertEqual(client.requestedURLs, [url])
     }
     
+    //catch connectivity error
     func test_load_deliversErrorOnClientError() {
         let (sut, client) = makeSUT()
                 
@@ -47,17 +48,20 @@ class RemoteFeedLoaderTests: XCTestCase {
     
     //move HTTPClientSpy to the test scope class as it is not belong to the production code, it is just a helpul
     //class for testing
-    private class HTTPClientSpy: HTTPClient {        
-        var requestedURLs = [URL]()
-        var completions = [(Error) -> Void]()
+    private class HTTPClientSpy: HTTPClient {
+        
+        private var messages = [(url: URL, completion: (Error) -> Void)]()
+        
+        var requestedURLs: [URL] {
+            return messages.map { $0.url }
+        }
 
         func get(from url: URL, completion: @escaping(Error) -> Void) {
-            completions.append(completion)
-            requestedURLs.append(url)
+            messages.append((url, completion))
         }
         
         func complete(with error: Error, at index: Int = 0) {
-            completions[index](error)
+            messages[index].completion(error)
         }
     }
     
@@ -166,18 +170,126 @@ because we are mixing responsibilities - responsibility of invoking a method in 
  
  func test_load_deliversErrorOnClientError() {
      let (sut, client) = makeSUT()
-     client.error = NSError(domain: "Test", code: 0)
      
-     var capturedErrors = [RemoteFeedLoader.Error]()
-     sut.load { capturedErrors.append($0) } //{ error in capturedError = error } same way to write it like  { capturedError = $0 }
+     var capturedErrors = RemoteFeedLoader.Error?
+     sut.load { error in capturedError = error }
+     
+     XCTAssertEqual(capturedErrors, .connectivity)
+ }
+ Here i have check that when i try to make a call(load) from RemoteFeddLoader,
+ i get a connectivity error.
+ But now i want to go further this implementation and notify client(HTTPSpy) that
+ it fails with error. And now we stub the client in order to achieve it(stub = set a default error to HTTPSpy). So i add to HTTPSpy the var error but i want the HTTPClient to send an error to RemoteFeedLoader. We will use a closure for that at HTTPClient get function.
+ If i understand correctly, the RemoteFeedLoader class has a connectivity error in completion, as it wants to notify the app that if there is a failing in HTTPClient(400,500 whatever), the error that i have to send to the rest of the app is connectivity error
+ //RemoteFeedLoader
+ public func load(completion: @escaping(Error) -> Void = { _ in}) {
+     client.get(from: url) { error in
+         completion(.connectivity)
+     }
+ }
+ 
+ public protocol HTTPClient {
+     func get(from url: URL, completion: @escaping(Error) -> Void)
+ }
+ 
+ func test_load_deliversErrorOnClientError() {
+     let (sut, client) = makeSUT()
+     client.error = NSError(domain: "Test", code: 0) //stub client, we set a default error
+
+     var capturedErrors = RemoteFeedLoader.Error?
+     sut.load { error in capturedError = error }
      
      XCTAssertEqual(capturedErrors, [.connectivity])
  }
  
- Test the connectivity error completion by stubbing error(set a particular error value)
- on HTTPClientSpy. We call load and then we assert (captured error instead of Test must be the
- connectivity error)
+ //coding cleanup
  
-But this way we do not test the real asynchronous HTTPClient implementation
+ func test_load_deliversErrorOnClientError() {
+     let (sut, client) = makeSUT()
+             
+     var capturedErrors = [RemoteFeedLoader.Error]()//many errors - cleanup
+     sut.load { capturedErrors.append($0) } //{ error in capturedError = error } same way to write it like  { capturedError = $0 } //cleanup
+     
+     let clientError = NSError(domain: "Test", code: 0)
+     client.complete(with: clientError)
+     
+     XCTAssertEqual(capturedErrors, [.connectivity])
+ }
+
+ //Please see essential developers comments for this
+ Arrange:
+ let (sut, client) = makeSUT()
+ client.error = NSError(domain: "Test", code: 0) //stub client, we set a default error
+ 
+ Given the sut and its HTTPcleint that will always fail with a given error(stubbed behaviour)!!!!!
+ 
+ Act: When we tell the sut to load(invoke the behaviour that we want to test)
+ var capturedErrors = [RemoteFeedLoader.Error]()
+ sut.load { capturedErrors.append($0)
+ 
+ Assert: We expect the captured load error to be the connectivity error
+ XCTAssertEqual(capturedErrors, [.connectivity])
+ ===============================================
+ 
+ The impementation so far is this
+ 
+ func test_load_deliversErrorOnClientError() {
+     let (sut, client) = makeSUT()
+     let clientError = NSError(domain: "Test", code: 0)
+
+     var capturedErrors = [RemoteFeedLoader.Error]()
+     sut.load { capturedErrors.append($0) }
+          
+     XCTAssertEqual(capturedErrors, [.connectivity])
+ }
+ 
+ But does not reflect the async nature of HTTPClient. So, we have to capturing data instead of stubbing them with some behaviour. So we want to capture the completion block in HTTPClientSpy( var completions and complete func)
+ 
+ private class HTTPClientSpy: HTTPClient {
+     var requestedURLs = [URL]()
+     var completions = [(Error) -> Void]()
+
+     func get(from url: URL, completion: @escaping(Error) -> Void) {
+         completions.append(completion) //!!!!!
+         requestedURLs.append(url)
+     }
+     
+     func complete(with error: Error, at index: Int = 0) {
+         completions[index](error)
+     }
+ }
+ With the    completions.append(completion), i no longer stub the HTTPClientSpy, but now i capture values.
+ 
+ So, the Arrange, Act and Assert portions of our test are transformed to this:
+ 
+ Arrange(Given the sut and its HTTPSpy. No stubbing this time.:
+ let (sut, client) = makeSUT()
+  
+ Act: When we tell the sut to load(invoke the behaviour that we want to test) and we complete the clients HTTP request with an error:
+ 
+ var capturedErrors = [RemoteFeedLoader.Error]()
+ sut.load { capturedErrors.append($0) }
+ let clientError = NSError(domain: "Test", code: 0)
+ client.complete(with: clientError)
+ 
+ Assert: We expect the captured load error to be the connectivity error
+ XCTAssertEqual(capturedErrors, [.connectivity])
+ 
+ Syntax that i had not understand!!!! :
+ 
+ private class HTTPClientSpy: HTTPClient {
+     var requestedURLs = [URL]()
+     var completions = [(Error) -> Void]()//array of functions!!!
+
+     func get(from url: URL, completion: @escaping(Error) -> Void) {
+         completions.append(completion)
+         requestedURLs.append(url)
+     }
+     
+     func complete(with error: Error, at index: Int = 0) {
+         completions[index](error)//function that calls
+         //the completions[index] function, passing the error object!!!!!
+     }
+ }
  */
 
