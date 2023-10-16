@@ -43,8 +43,7 @@ class RemoteFeedLoaderTests: XCTestCase {
         
         let samples =  [199, 201, 300, 400, 500]
         
-            samples.enumerated().forEach { index, code in
-            
+        samples.enumerated().forEach { index, code in
             var capturedErrors = [RemoteFeedLoader.Error]()
             
             sut.load { capturedErrors.append($0) }
@@ -67,23 +66,23 @@ class RemoteFeedLoaderTests: XCTestCase {
     //class for testing
     private class HTTPClientSpy: HTTPClient {
         
-        private var messages = [(url: URL, completion: (Error?, HTTPURLResponse?) -> Void)]()
+        private var messages = [(url: URL, completion: (HTTPClientResult) -> Void)]()
         
         var requestedURLs: [URL] {
             return messages.map { $0.url }
         }
 
-        func get(from url: URL, completion: @escaping(Error?, HTTPURLResponse?) -> Void) {
+        func get(from url: URL, completion: @escaping(HTTPClientResult) -> Void) {
             messages.append((url, completion))
         }
         
         func complete(with error: Error, at index: Int = 0) {
-            messages[index].completion(error, nil)
+            messages[index].completion(.failure(error))
         }
         
         func complete(withStatusCode code: Int, at index: Int = 0) {
-            let response = HTTPURLResponse(url: requestedURLs[index], statusCode: code, httpVersion: nil, headerFields: nil)
-            messages[index].completion(nil, response)
+            let response = HTTPURLResponse(url: requestedURLs[index], statusCode: code, httpVersion: nil, headerFields: nil)!
+            messages[index].completion(.success(response))
         }
     }
     
@@ -312,6 +311,18 @@ because we are mixing responsibilities - responsibility of invoking a method in 
          completions[index](error)//function that calls
          //the completions[index] function, passing the error object!!!!!
      }
+ }
+ 
+ One problem that we have in this code
+ public protocol HTTPClient {
+     func get(from url: URL, completion: @escaping(Error?, HTTPURLResponse?) -> Void)
+ }
+ is that if i have a result with Error and HttpURLResponse  nil at the same time, i have not
+ covered this case. For this reason, i create
+ 
+ public enum HTTPClientResult {
+     case success(HTTPURLResponse)
+     case failure(Error)
  }
  */
 
