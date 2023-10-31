@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		7A2B69852AF1269F0020B65B /* HTTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2B69842AF1269F0020B65B /* HTTPClient.swift */; };
+		7A2B69872AF127100020B65B /* FeedItemsMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2B69862AF127100020B65B /* FeedItemsMapper.swift */; };
 		7A370A622A881E090015D5F0 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A370A612A881E090015D5F0 /* AppDelegate.swift */; };
 		7A370A642A881E090015D5F0 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A370A632A881E090015D5F0 /* SceneDelegate.swift */; };
 		7A370A662A881E090015D5F0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A370A652A881E090015D5F0 /* ViewController.swift */; };
@@ -42,6 +43,7 @@
 
 /* Begin PBXFileReference section */
 		7A2B69842AF1269F0020B65B /* HTTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPClient.swift; sourceTree = "<group>"; };
+		7A2B69862AF127100020B65B /* FeedItemsMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedItemsMapper.swift; sourceTree = "<group>"; };
 		7A370A5E2A881E090015D5F0 /* EssentialFeed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EssentialFeed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A370A612A881E090015D5F0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7A370A632A881E090015D5F0 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -154,6 +156,7 @@
 			children = (
 				7A9BC32F2AD94F0A00957113 /* RemoteFeedLoader.swift */,
 				7A2B69842AF1269F0020B65B /* HTTPClient.swift */,
+				7A2B69862AF127100020B65B /* FeedItemsMapper.swift */,
 			);
 			path = "Feed API";
 			sourceTree = "<group>";
@@ -292,6 +295,7 @@
 				7A370A932A881E400015D5F0 /* FeedItem.swift in Sources */,
 				7A370A662A881E090015D5F0 /* ViewController.swift in Sources */,
 				7A370A622A881E090015D5F0 /* AppDelegate.swift in Sources */,
+				7A2B69872AF127100020B65B /* FeedItemsMapper.swift in Sources */,
 				7A2B69852AF1269F0020B65B /* HTTPClient.swift in Sources */,
 				7A370A952A881E4F0015D5F0 /* FeedLoader.swift in Sources */,
 				7A9BC3302AD94F0A00957113 /* RemoteFeedLoader.swift in Sources */,
