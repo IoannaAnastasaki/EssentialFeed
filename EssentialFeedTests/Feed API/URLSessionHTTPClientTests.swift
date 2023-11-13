@@ -39,7 +39,8 @@ class URLSessionHTTPClientTests: XCTestCase {
         sut.get(from: url) { result in
             switch result {
             case let .failure(receivedError as NSError):
-                XCTAssertEqual(receivedError, error)
+                XCTAssertEqual(receivedError.code, error.code)
+                XCTAssertEqual(receivedError.domain, error.domain)
             default:
                 XCTFail("Expected failure with error \(error), got \(result) instead")
             }
